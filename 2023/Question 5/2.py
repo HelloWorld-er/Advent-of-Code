@@ -14,14 +14,19 @@ with open("../input/input5.txt", "r") as file_input:
 	if len(temp):
 		new_list.append([element for element in temp])
 	content = new_list
+	i = 0
 	for line in content[0]:
 		line = line.split(' ')
 		range_pair = []
-		for seed in line:
+		for seed_info in line:
 			try:
-				seeds.append({'seed': int(seed)})
+				range_pair.append(int(seed_info))
 			except ValueError:
 				pass
+			if len(range_pair) == 2:
+				for seed in range(range_pair[0], range_pair[0] + range_pair[1]):
+					seeds.append({'seed': seed})
+				range_pair = []
 	del content[0]
 	for type_of_map in content:
 		temp = type_of_map[0].split(' ')
@@ -46,4 +51,5 @@ with open("../input/input5.txt", "r") as file_input:
 		if destination == "location":
 			break
 seeds.sort(reverse=False, key=lambda element:element["location"])
+print(seeds)
 print(seeds[0]["location"])

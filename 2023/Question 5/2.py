@@ -1,5 +1,19 @@
 seeds = []
 
+def reload(temp_dict, difference_start, difference_end, position):
+	copy_dict = {element[0]: element[1] for element in temp_dict.items()}
+	for item in copy_dict.items():
+		if item[0] == position[0] + "-start" or item[0] == position[0] + "-end":
+			continue
+		if item[0] == position[1] + "-start" or item[0] == position[0] + "-end":
+			continue
+		if "-start" in item[0]:
+			temp_dict[item[0]] += difference_start
+		elif "-end" in item[0]:
+			temp_dict[item[0]] += difference_end
+	return temp_dict
+
+
 with open("../input/input5.txt", "r") as file_input:
 	content = file_input.readlines()
 	content = [each_line.strip() for each_line in content]
@@ -46,10 +60,55 @@ with open("../input/input5.txt", "r") as file_input:
 			range_length = temp[2]
 			relationship_of_sd[-1]["map"].append(destination_start - source_start)
 			for index_of_seed in range(len(seeds)):
-				if 
-				
+				if seeds[index_of_seed][source + "-start"] < source_start:
+					if seeds[index_of_seed][source + "-end"] < source_start:
+						if destination + "-start" not in seeds[index_of_seed]:
+							seeds[index_of_seed][destination + "-start"] = seeds[index_of_seed][source + "-start"]
+							seeds[index_of_seed][destination + "-end"] = seeds[index_of_seed][source + "-end"]
+					else:
+						temp_start = seeds[index_of_seed][source + "-start"]
+						temp_end = seeds[index_of_seed][source + "-end"]
+						seeds.append({element[0]: element[1] for element in seeds[index_of_seed].items()})
+						seeds[-1][source + "-start"] = source_start
+						seeds[index_of_seed][source + "-end"] = source_start - 1
+						if seeds[-1][source + "-end"] >= source_start + range_length:
+							seeds.append({element[0]: element[1] for element in seeds[-1].items()})
+							seeds[-1][source + "-start"] = source_start + range_length
+							seeds[-2][source + "-end"] = source_start + range_length - 1
+							seeds[-2][destination + "-start"] = seeds[-2][source + "-start"] + relationship_of_sd[-1]["map"][-1]
+							seeds[-2][destination + "-end"] = seeds[-2][source + "-end"] + relationship_of_sd[-1]["map"][-1]
+							seeds[-1][destination + "-start"] = seeds[-1][source + "-start"]
+							seeds[-1][destination + "-end"] = seeds[-1][source + "-end"]
+							seeds[-1] = reload(seeds[-1], seeds[-1][source + "-start"] - temp_start, seeds[-1][source + "-end"] - temp_end, (source, destination))
+							seeds[-2] = reload(seeds[-2], seeds[-2][source + "-start"] - temp_start, seeds[-2][source + "-end"] - temp_end, (source, destination))
+						else:
+							seeds[-1][destination + "-start"] = seeds[-1][source + "-start"] + relationship_of_sd[-1]["map"][-1]
+							seeds[-1][destination + "-end"] = seeds[-1][source + "-end"] + relationship_of_sd[-1]["map"][-1]
+							seeds[-1] = reload(seeds[-1], seeds[-1][source + "-start"] - temp_start, seeds[-1][source + "-end"] - temp_end, (source, destination))
+						seeds[index_of_seed][destination + "-start"] = seeds[index_of_seed][source + "-start"]
+						seeds[index_of_seed][destination + "-end"] = seeds[index_of_seed][source + "-end"]
+						seeds[index_of_seed] = reload(seeds[index_of_seed], seeds[index_of_seed][source + "-start"] - temp_start, seeds[index_of_seed][source + "-end"] - temp_end, (source, destination))
+				elif seeds[index_of_seed][source + "-start"] < source_start + range_length:
+					if seeds[index_of_seed][source + "-end"] < source_start + range_length:
+						seeds[index_of_seed][destination + "-start"] = seeds[index_of_seed][source + "-start"] + relationship_of_sd[-1]["map"][-1]
+						seeds[index_of_seed][destination + "-end"] = seeds[index_of_seed][source + "-end"] + relationship_of_sd[-1]["map"][-1]
+					else:
+						temp_start = seeds[index_of_seed][source + "-start"]
+						temp_end = seeds[index_of_seed][source + "-end"]
+						seeds.append({element[0]: element[1] for element in seeds[index_of_seed].items()})
+						seeds[-1][source + "-start"] = source_start + range_length
+						seeds[index_of_seed][source + "-end"] = source_start + range_length - 1
+						seeds[index_of_seed][destination + "-start"] = seeds[index_of_seed][source + "-start"] + relationship_of_sd[-1]["map"][-1]
+						seeds[index_of_seed][destination + "-end"] = seeds[index_of_seed][source + "-end"] + relationship_of_sd[-1]["map"][-1]
+						seeds[-1][destination + "-start"] = seeds[-1][source + "-start"]
+						seeds[-1][destination + "-end"] = seeds[-1][source + "-end"]
+						seeds[-1] = reload(seeds[-1], seeds[-1][source + "-start"] - temp_start, seeds[-1][source + "-end"] - temp_end, (source, destination))
+						seeds[index_of_seed] = reload(seeds[index_of_seed], seeds[index_of_seed][source + "-start"] - temp_start, seeds[index_of_seed][source + "-end"] - temp_end, (source, destination))
+				else:
+					if destination + "-start" not in seeds[index_of_seed]:
+						seeds[index_of_seed][destination + "-start"] = seeds[index_of_seed][source + "-start"]
+						seeds[index_of_seed][destination + "-end"] = seeds[index_of_seed][source + "-end"]
 		if destination == "location-start":
 			break
 seeds.sort(reverse=False, key=lambda element:element["location-start"])
-print(seeds)
 print(seeds[0]["location-start"])

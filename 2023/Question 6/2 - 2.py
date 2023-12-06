@@ -5,7 +5,7 @@ def find_start(left, right, real_t, real_d):
 		if (real_t - mid) * mid > real_d:
 			right = mid
 		else:
-			left = mid + 1
+			left = int(mid) + 1
 	return int(mid) + 1
 
 
@@ -16,7 +16,7 @@ def find_end(left, right, real_t, real_d):
 		if (real_t - mid) * mid > real_d:
 			left = mid
 		else:
-			right = mid - 1
+			right = int(mid)
 	return int(mid)
 
 

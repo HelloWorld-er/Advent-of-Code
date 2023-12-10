@@ -12,7 +12,7 @@ connect_side = {'|': [(True, False, True, False), (0, 2)],
 # North, east, south, west
 connect = {0: 2, 1: 3, 2: 0, 3: 1}
 
-visit = []
+visit = {}
 tiles = 0
 
 
@@ -23,12 +23,11 @@ def decide_connect(original_index, new_index):
 	original_sides = connect_side[original_pipe][0]
 	new_sides = connect_side[new_pipe][0]
 	for index in range(4):
-		if original_sides[index] is True and new_sides[connect[index]] is True:
-			for side in connect_side[new_pipe][1]:
-				temp_x = new_index[0] + surrounding_position[side][0]
-				temp_y = new_index[1] + surrounding_position[side][1]
-				if temp_x == original_index[0] and temp_y == original_index[1]:
-					return True
+		if original_sides[connect[index]] is True and new_sides[index] is True:
+			temp_x = new_index[0] + surrounding_position[index][0]
+			temp_y = new_index[1] + surrounding_position[index][1]
+			if temp_x == original_index[0] and temp_y == original_index[1]:
+				return True
 	return False
 
 
@@ -52,26 +51,28 @@ def breadth_first_search():
 				continue
 			if new_index_y < 0 or new_index_y >= len(sketch):
 				continue
-			if steps[new_index_y][new_index_x] == -1 and decide_connect((index_x, index_y), (new_index_x, new_index_y)):
+			if steps[new_index_y][new_index_x] < 0 and decide_connect((index_x, index_y), (new_index_x, new_index_y)):
 				steps[new_index_y][new_index_x] = step
 				queue_list.append((new_index_x, new_index_y))
 
 
 def depth_first_search(index_x, index_y):
 	global sketch, steps, visit
+	if (index_x, index_y) in visit:
+		return 0, (index_x, index_y)
 	if index_x < 0 or index_x >= len(sketch[0]):
 		return 0, False
 	if index_y < 0 or index_y >= len(sketch):
 		return 0, False
 	if steps[index_y][index_x] > -1:
 		return 0, True
-	if (index_x, index_y) in visit:
-		return 0, True
-	visit.append((index_x, index_y))
+	visit[(index_x, index_y)] = None
 	ans = 0
 	for position_x, position_y in surrounding_position_eight_side:
 		new_index_x = index_x + position_x
 		new_index_y = index_y + position_y
+		# if (index_x, index_y) in visit and visit[(index_x, index_y)] is None:
+		# 	continue
 		temp = depth_first_search(new_index_x, new_index_y)
 		if temp[1] is False:
 			temp = list(sketch[index_y])
@@ -80,7 +81,7 @@ def depth_first_search(index_x, index_y):
 			return 0, False
 		ans += temp[0]
 	if steps[index_y][index_x] == -2:
-		return 0, True
+		return ans, True
 	temp = list(sketch[index_y])
 	temp[index_x] = 'I'
 	sketch[index_y] = ''.join(temp)
@@ -100,6 +101,12 @@ def expand():
 				for position_x, position_y in surrounding_position:
 					new_index_x = index_x + position_x
 					new_index_y = index_y + position_y
+					if new_index_x < 0 or new_index_x >= len(sketch[0]):
+						style += 1
+						continue
+					if new_index_y < 0 or new_index_y >= len(sketch):
+						style += 1
+						continue
 					if steps[new_index_y][new_index_x] < 0:
 						style += 1
 						continue
@@ -158,16 +165,24 @@ with open("../input/input10.txt", "r") as input_file:
 	queue_list = [(index_x, index_y)]
 	breadth_first_search()
 	expand()
-	# for line in sketch:
-	# 	print(line)
+	index_x = 0
+	index_y = 0
+	for line in sketch:
+		index_x = line.find('S')
+		if index_x != -1:
+			break
+		index_y += 1
+	steps = [[-2 if step == -2 else -1 for step in line]for line in steps]
+	steps[index_y][index_x] = 0
+	queue_list = [(index_x, index_y)]
+	breadth_first_search()
 	for index_y in range(len(sketch)):
 		for index_x in range(len(sketch[0])):
 			if steps[index_y][index_x] == -1 and (index_x, index_y) not in visit:
 				temp = depth_first_search(index_x, index_y)
 				if temp[1] is True:
-					print(index_x, index_y)
 					tiles += temp[0]
-	for line in sketch:
-		print(line)
+	# for line in sketch:
+	# 	print(line)
 
 print(tiles)

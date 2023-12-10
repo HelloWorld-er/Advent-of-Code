@@ -21,10 +21,10 @@ def decide_connect(original_index, new_index):
 	new_sides = connect_side[new_pipe][0]
 	for index in range(4):
 		if original_sides[index] is True and new_sides[connect[index]] is True:
-			for side in connect_side[original_pipe][1]:
-				temp_x = original_index[0] + surrounding_position[side][0]
-				temp_y = original_index[1] + surrounding_position[side][1]
-				if temp_x == new_index[0] and temp_y == new_index[1]:
+			for side in connect_side[new_pipe][1]:
+				temp_x = new_index[0] + surrounding_position[side][0]
+				temp_y = new_index[1] + surrounding_position[side][1]
+				if temp_x == original_index[0] and temp_y == original_index[1]:
 					return True
 	return False
 

@@ -1,6 +1,4 @@
 surrounding_position = [(0, -1), (1, 0), (0, 1), (-1, 0)]
-surrounding_position_eight_side = [(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]
-
 connect_side = {'|': [(True, False, True, False), (0, 2)],
                 '-': [(False, True, False, True), (1, 3)],
                 'L': [(True, True, False, False), (0, 1)],
@@ -12,8 +10,7 @@ connect_side = {'|': [(True, False, True, False), (0, 2)],
 # North, east, south, west
 connect = {0: 2, 1: 3, 2: 0, 3: 1}
 
-visit = []
-tiles = 0
+max_steps = -1
 
 
 def decide_connect(original_index, new_index):
@@ -54,38 +51,53 @@ def breadth_first_search():
 				continue
 			if steps[new_index_y][new_index_x] == -1 and decide_connect((index_x, index_y), (new_index_x, new_index_y)):
 				steps[new_index_y][new_index_x] = step
+				max_steps = step
 				queue_list.append((new_index_x, new_index_y))
 
 
-def depth_first_search(index_x, index_y):
-	global sketch, steps, visit
-	if index_x < 0 or index_x >= len(sketch[0]):
-		return 0, False
-	if index_y < 0 or index_y >= len(sketch):
-		return 0, False
-	if steps[index_y][index_x] != -1:
-		return 0, True
-	if (index_x, index_y) in visit:
-		return 0, True
-	visit.append((index_x, index_y))
-	ans = 0
-	for position_x, position_y in surrounding_position_eight_side:
-		new_index_x = index_x + position_x
-		new_index_y = index_y + position_y
-		temp = depth_first_search(new_index_x, new_index_y)
-		if temp[1] is False:
-			# temp = list(sketch[index_y])
-			# temp[index_x] = 'O'
-			# sketch[index_y] = ''.join(temp)
-			return 0, False
-		ans += temp[0]
-	# temp = list(sketch[index_y])
-	# temp[index_x] = 'I'
-	# sketch[index_y] = ''.join(temp)
-	return ans + 1, True
+def calculate_area(matrix, row, col, visited):
+	if (
+			row < 0
+			or row >= len(matrix)
+			or col < 0
+			or col >= len(matrix[0])
+			or (row, col) in visited
+			or matrix[row][col] == 0
+	):
+		return 0
+	
+	visited.add((row, col))
+	
+	area = (
+			calculate_area(matrix, row + 1, col, visited)
+			+ calculate_area(matrix, row - 1, col, visited)
+			+ calculate_area(matrix, row, col + 1, visited)
+			+ calculate_area(matrix, row, col - 1, visited)
+	)
+	
+	return area + 1
 
 
-with open("../input/input10.txt", "r") as input_file:
+def calculate_enclosed_area(matrix):
+	if not matrix or not matrix[0]:
+		return 0
+	
+	rows = len(matrix)
+	cols = len(matrix[0])
+	
+	visited = set()
+	max_area = 0
+	
+	for row in range(rows):
+		for col in range(cols):
+			if matrix[row][col] > 0 and (row, col) not in visited:
+				area = calculate_area(matrix, row, col, visited)
+				max_area = max(max_area, area)
+	
+	return max_area
+
+
+with open("2023/input/input10.txt", "r") as input_file:
 	sketch = input_file.readlines()
 	sketch = [line.strip() for line in sketch]
 	index_x = 0
@@ -99,11 +111,6 @@ with open("../input/input10.txt", "r") as input_file:
 	steps[index_y][index_x] = 0
 	queue_list = [(index_x, index_y)]
 	breadth_first_search()
-	for index_y in range(len(sketch)):
-		for index_x in range(len(sketch[0])):
-			if steps[index_y][index_x] == -1:
-				temp = depth_first_search(index_x, index_y)
-				if temp[1] is True:
-					tiles += temp[0]
+	print(calculate_enclosed_area(steps))
 
-print(tiles)
+print(max_steps)

@@ -24,17 +24,19 @@ pointers = []
 
 def recursion(index, number_index, uncertain_pointers_num, symbol_list, number_list, layer, case_index):
 	global pointers
-	if index >= len(pointers[case_index][layer - 1]):
-		print("haaaaaaaaaaaaaaaaaaaaaa")
-		if uncertain_pointers_num == 0 and number_index == len(number_list):
-			print("reach--------------------------------------------")
-			return 1
-		return 0
 	print(symbol_list)
 	print(pointers[case_index][layer])
 	print("index:", index)
 	print("layer:", layer)
 	print("num index", number_index)
+	print("uncertain pointers num", uncertain_pointers_num)
+	if index >= len(pointers[case_index][layer]):
+		print("haaaaaaaaaaaaaaaaaaaaaa")
+		if uncertain_pointers_num == 0 and number_index == len(number_list):
+			print("reach--------------------------------------------")
+			return 1
+		return 0
+	
 	if len(pointers[case_index]) == layer + 1:
 		pointers[case_index].append([])
 	answer = 0
@@ -67,7 +69,7 @@ def recursion(index, number_index, uncertain_pointers_num, symbol_list, number_l
 		if start > 0 and start > pointers[case_index][layer][index][0] and symbol_list[start - 1] == '#':
 			print("break")
 			break
-		if start < len(symbol_list) - 1 and symbol_list[start + 1] == '#':
+		if start != pointers[case_index][layer][index][1] and start < len(symbol_list) - 1 and symbol_list[start + 1] == '#':
 			print("continue")
 			continue
 		print("start", start)
@@ -86,9 +88,10 @@ def recursion(index, number_index, uncertain_pointers_num, symbol_list, number_l
 	return answer
 
 
-def loop_order(symbol_list, number_list, pointers, case_index):
+def loop_order(symbol_list, number_list, case_index):
+	global pointers
 	# new_pointers = [element for element in pointers]
-	uncertain_pointers_num = len(number_list) - len(pointers)
+	uncertain_pointers_num = len(number_list) - len(pointers[case_index][0])
 	return recursion(0, 0, uncertain_pointers_num, symbol_list, number_list,  0, case_index)
 
 
@@ -118,7 +121,7 @@ with open("2023/input/input12.txt", "r") as input_file:
 		if decide:
 			pointers[-1][-1][-1].append(len(symbol_format_info[case]) - 1)
 	for case in range(len(symbol_format_info)):
-		total += loop_order(symbol_format_info[case], number_format_info[case], pointers[case], case)
+		total += loop_order(symbol_format_info[case], number_format_info[case], case)
 		print()
 
 print(total)

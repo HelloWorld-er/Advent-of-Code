@@ -7,7 +7,6 @@ pointers = []
 
 def recursion(index, number_index, uncertain_pointers_num, symbol_list, number_list, layer, case_index):
 	global pointers
-	
 	if index >= len(pointers[case_index]):
 		if uncertain_pointers_num == 0 and number_index == len(number_list):
 			# print("reach--------------------------------------------")

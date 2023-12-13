@@ -27,6 +27,7 @@ def looping(start, length, unknown_list, symbol_list, number_list):
 	if len(present_list) == length:
 		if check(symbol_list, number_list, unknown_list, present_list) is True:
 			# print(present_list)
+			print(1)
 			return 1
 		return 0
 	ans = 0
@@ -56,8 +57,15 @@ def loop_order(symbol_list, number_list, unknown_list):
 with open("../input/input12.txt", "r") as input_file:
 	for line in input_file:
 		temp = line.strip().split(' ')
-		symbol_format_info.append(list(temp[0]))
-		number_format_info.append([int(element) for element in temp[1].split(',')])
+		symbol_format_info.append([])
+		number_format_info.append([])
+		for copy in range(5):
+			for element in list(temp[0]):
+				symbol_format_info[-1].append(element)
+			if copy < 4:
+				symbol_format_info[-1].append('?')
+			for element in temp[1].split(','):
+				number_format_info[-1].append(int(element))
 		unknown_symbol_info.append([])
 		for symbol_index in range(len(symbol_format_info[-1])):
 			if symbol_format_info[-1][symbol_index] == '?':

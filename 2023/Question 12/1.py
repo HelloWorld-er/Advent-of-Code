@@ -105,6 +105,8 @@ with open("../input/input12.txt", "r") as input_file:
 		if decide:
 			pointers[-1][-1].append(len(symbol_format_info[case]) - 1)
 	for case in range(len(symbol_format_info)):
+		# a = total
 		total += loop_order(symbol_format_info[case], number_format_info[case], case)
+		# print(total - a)
 
 print(total)

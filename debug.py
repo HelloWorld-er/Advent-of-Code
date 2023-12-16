@@ -12,8 +12,16 @@ group_dict = {}
 def recursion(index, case_index, layer):
 	global symbol_format_info, generated_list, sharp_position, unknown_position, group_position, group_dict, original_sharp_position
 	if index == len(sharp_position) - 1:
-		# print(1)
-		return len(symbol_format_info[case_index]) - sharp_position[index][1]
+		ans = 0
+		for element_index in range(sharp_position[index][1], len(symbol_format_info[case_index])):
+			if symbol_format_info[case_index][element_index] != '.':
+				if element_index != sharp_position[index][1] and symbol_format_info[case_index][
+					sharp_position[index][0] + element_index - sharp_position[index][1] - 1] == '#':
+					break
+				ans += 1
+			else:
+				break
+		return ans
 	
 	answer = 0
 	# print('topic', sharp_position)
@@ -90,6 +98,133 @@ def recursion(index, case_index, layer):
 	sharp_position[index][0] = original_sharp_position[index][0]
 	sharp_position[index][1] = original_sharp_position[index][1]
 	return answer
+
+
+def alignment(start, end, case_index):
+	global sharp_position, symbol_format_info, generated_list
+	print("--------------------")
+	temp_index = end
+	print("question", temp_index)
+	print(sharp_position)
+	sharp_index_start = -1
+	sharp_index_end = -1
+	group_index = -1
+	length = -1
+	while True:
+		print(symbol_format_info[case_index])
+		print(generated_list)
+		print(temp_index)
+		sharp_index_end = 0
+		for element_index in range(temp_index - 1, -1, -1):
+			if element_index >= len(generated_list):
+				continue
+			if generated_list[element_index] == '#' and (element_index + 1 >= len(generated_list) or (element_index + 1 < len(generated_list) and generated_list[element_index + 1] == '.')):
+				sharp_index_end = element_index
+				break
+		sharp_index_start = -1
+		for element_index in range(len(sharp_position)):
+			if sharp_index_end == sharp_position[element_index][1]:
+				sharp_index_start = sharp_position[element_index][0]
+				group_index = element_index
+				break
+		print(sharp_index_start, sharp_index_end)
+		if sharp_index_end - sharp_index_start + 1 < end - start + 1:
+			temp_index = sharp_index_start
+			continue
+		temp_bool = True
+		
+		temp_num = 0
+		for element_index in range(start - 1, -1, -1):
+			if symbol_format_info[case_index][element_index] != '.':
+				temp_num += 1
+			else:
+				break
+		if sharp_index_end - sharp_index_start + 1 < end - start + temp_num + 1:
+			length = end - sharp_index_end
+		else:
+			length = start - sharp_index_start
+		
+		for element_index in range(sharp_index_start, sharp_index_start + length):
+			if symbol_format_info[case_index][element_index] == '#':
+				temp_bool = False
+				break
+		
+		if temp_bool is False:
+			temp_start = -1
+			temp_end = -1
+			print(start)
+			for element_index in range(start - 1, -1, -1):
+				if symbol_format_info[case_index][element_index] == '#':
+					if temp_bool is False:
+						temp_bool = True
+						temp_end = element_index
+					temp_start = element_index
+				else:
+					if temp_bool is True:
+						break
+			
+			print(temp_start, temp_end)
+			alignment(temp_start, temp_end, case_index)
+			# continue
+			sharp_index_start = sharp_position[group_index][0]
+			sharp_index_end = sharp_position[group_index][1]
+			print("a", sharp_index_start, sharp_index_end)
+			temp_num = 0
+			for element_index in range(start - 1, -1, -1):
+				if symbol_format_info[case_index][element_index] != '.':
+					temp_num += 1
+				else:
+					break
+			if sharp_index_end - sharp_index_start + 1 < end - start + temp_num + 1:
+				length = end - sharp_index_end
+			else:
+				length = start - sharp_index_start
+			
+			for element_index in range(sharp_index_start, sharp_index_start + length):
+				if symbol_format_info[case_index][element_index] == '#':
+					temp_bool = False
+					break
+		
+		break
+	
+	print("length", length)
+	if length >= 0:
+		for element_index in range(length):
+			generated_list.insert(sharp_index_start, '.')
+		temp_index = -1
+		for element_index in range(group_index, len(sharp_position)):
+			sharp_position[element_index][0] += length
+			sharp_position[element_index][1] += length
+			temp_index = sharp_position[element_index][1] + 1
+			if element_index != len(sharp_position) - 1 and sharp_position[element_index + 1][0] - \
+					sharp_position[element_index][1] >= 2:
+				break
+		
+		print("temp_index", temp_index)
+		print(symbol_format_info[case_index])
+		print(generated_list)
+		for element_index in range(length):
+			if temp_index >= len(generated_list) or temp_index < 0:
+				break
+			del generated_list[temp_index]
+	else:
+		temp_index = 0
+		for element_index in range(sharp_index_start - 1, -1, -1):
+			if generated_list[element_index] == '.':
+				temp_index = element_index
+			else:
+				break
+		print(temp_index)
+		print(sharp_position)
+		for element_index in range(abs(length)):
+			del generated_list[temp_index]
+		for element_index in range(group_index, len(sharp_position)):
+			sharp_position[element_index][0] += length
+			sharp_position[element_index][1] += length
+		print(sharp_position)
+		
+	print(generated_list)
+	print(sharp_position)
 
 
 def loop_order(case_index):
@@ -175,8 +310,8 @@ def loop_order(case_index):
 	if temp_bool is True:
 		temp_bool = False
 		sharp_position[-1].append(len(generated_list) - 1)
-	print(symbol_format_info[case_index])
-	print(generated_list)
+	# print(symbol_format_info[case_index])
+	# print(generated_list)
 	index = 0
 	while index < len(symbol_format_info[case_index]):
 		if symbol_format_info[case_index][index] == '#' and (index >= len(generated_list) or (index < len(generated_list) and generated_list[index]  == '.')):
@@ -192,96 +327,8 @@ def loop_order(case_index):
 					start = element_index
 				else:
 					break
-			temp_index = start
-			print(start, end)
-			while True:
-				sharp_index_end = 0
-				for element_index in range(temp_index - 1, -1, -1):
-					if generated_list[element_index] == '#':
-						sharp_index_end = element_index
-						break
-				sharp_index_start = 0
-				for element_index in range(len(sharp_position)):
-					if sharp_index_end == sharp_position[element_index][1]:
-						sharp_index_start = sharp_position[element_index][0]
-						break
-				print(sharp_index_start, sharp_index_end)
-				if sharp_index_end - sharp_index_start + 1 < end - start + 1:
-					temp_index = sharp_index_start
-					continue
-				break
-			print("-----------------")
-			temp_bool = False
-			while temp_bool is False:
-				generated_list.insert(sharp_index_start, '.')
-				temp_bool = True
-				for element_index in range(end, start - 1, -1):
-					if len(generated_list) <= element_index:
-						break
-					if generated_list[element_index] != '#':
-						temp_bool = False
-						break
+			alignment(start, end, case_index)
 		index += 1
-	# 	if symbol_format_info[case_index][index] == '#' and (index >= len(generated_list) or (index < len(generated_list) and generated_list[index] != '#')):
-	# 		end = 0
-	# 		for element_index in range(index, len(symbol_format_info[case_index])):
-	# 			if symbol_format_info[case_index][element_index] == '#':
-	# 				end = element_index
-	# 			else:
-	# 				break
-	# 		start = 0
-	# 		for element_index in range(index, -1, -1):
-	# 			if symbol_format_info[case_index][element_index] == '#':
-	# 				start = element_index
-	# 			else:
-	# 				break
-	# 		group_index = -1
-	# 		for element_index in range(index - 1, -1, -1):
-	# 			if element_index >= len(generated_list):
-	# 				continue
-	# 			if generated_list[element_index] == '#':
-	# 				temp_bool = True
-	# 				group_index = element_index
-	# 				break
-	# 		for temp_index in range(len(sharp_position)):
-	# 			if sharp_position[temp_index][1] == group_index:
-	# 				group_index = temp_index
-	# 				break
-	# 		temp_bool = False
-	# 		print(group_index)
-	# 		print("--------------------------------")
-	# 		print("--------------------------------")
-	# 		while temp_bool is False:
-	# 			print(symbol_format_info[case_index])
-	# 			print(generated_list)
-	# 			print(sharp_position)
-	# 			print(group_index)
-	# 			print("-------")
-	# 			temp_bool = True
-	# 			for element_index in range(sharp_position[group_index][1], end - 1):
-	# 				if element_index != sharp_position[group_index][1] and symbol_format_info[case_index][
-	# 					sharp_position[group_index][0] + element_index - sharp_position[group_index][1] - 1] == '#':
-	# 					temp_bool = False
-	# 					break
-	# 			if temp_bool is False:
-	# 				group_index -= 1
-	# 		length = end - sharp_position[group_index][1]
-	# 		for element in range(length):
-	# 			generated_list.insert(sharp_position[group_index][0], '.')
-	# 		sharp_position[group_index][0] += length
-	# 		sharp_position[group_index][1] += length
-	# 		for element in range(length):
-	# 			if sharp_position[group_index][1] + 1 >= len(generated_list):
-	# 				break
-	# 			del generated_list[sharp_position[group_index][1] + 1]
-	# 	index += 1
-	#
-	# while index < len(sharp_position) - 1:
-	# 	if sharp_position[index + 1][0] - sharp_position[index][1] == 1:
-	# 		generated_list.insert(sharp_position[index][1] + 1, '.')
-	# 		sharp_position[index + 1][0] += 1
-	# 		sharp_position[index + 1][1] += 1
-	# 	index += 1
 	
 	group_position = []
 	temp_bool = False
@@ -314,12 +361,15 @@ def loop_order(case_index):
 	
 	original_sharp_position = [[element for element in group] for group in sharp_position]
 	
+	# print()
 	# print(symbol_format_info[case_index])
 	# print(generated_list)
-	# print(group_dict)
+	# print(sharp_position)
+	# print(len(symbol_format_info[case_index]))
+	# print()
 	
-	return 0
-	# return recursion(0, case_index, 0)
+	# return 0
+	return recursion(0, case_index, 0)
 
 
 with (open("2023/input/input12.txt", "r") as input_file):
@@ -351,8 +401,9 @@ with (open("2023/input/input12.txt", "r") as input_file):
 		if decide:
 			pointers[-1][-1].append(len(symbol_format_info[case]) - 1)
 	for case in range(len(symbol_format_info)):
-		a = total
+		# a = total
 		total += loop_order(case)
+		# print(case)
 		# print(total - a)
 		# print()
 		# print()

@@ -10,6 +10,8 @@ def recursion(index, number_index, uncertain_pointers_num, symbol_list, number_l
 	if index >= len(pointers[case_index]):
 		if uncertain_pointers_num == 0 and number_index == len(number_list):
 			# print("reach--------------------------------------------")
+			print(symbol_format_info[case_index])
+			print(number_index)
 			return 1
 		return 0
 	

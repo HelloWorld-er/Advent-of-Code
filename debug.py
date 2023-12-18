@@ -11,22 +11,53 @@ positions = []
 new_position = []
 
 
-def c(k, n):
-	ans = 1
-	for element_index in range(n):
-		ans *= k - element_index
-	for element_index in range(n):
-		ans /= element_index + 1
-	return ans
-
-
-def recursion(index, start_position, case_index):
+def recursion(index, case_index):
 	global symbol_format_info, generated_list, sharp_position, group_position, group_dict, original_sharp_position, positions, new_position
 	answer = 0
-	next_position = 0
+	if index == len(sharp_position) - 1:
+		answer = new_position[index][1] - new_position[index][0] + 1
+		# print(new_position)
+		if index != 0 and new_position[index - 1][1] < len(positions[index - 1]) - 1:
+			for element_index in range(new_position[index][0] + 1, len(positions[index])):
+				if positions[index][element_index][0] - positions[index - 1][new_position[index - 1][1] + 1][1] >= 2:
+					new_position[index][0] = element_index
+					break
+		# print(index, answer)
+		return answer
 	
-	for position in range(start_position, len(positions[index])):
-		if positions[index + 1][next_position][0] - positions[index][position][1] + 1
+	while True:
+		# print(index)
+		new_position[index][1] = len(positions[index]) - 1
+		temp_index = -1
+		for element_index in range(new_position[index][0], new_position[index][1] + 1):
+			if positions[index + 1][new_position[index + 1][0]][0] - positions[index][element_index][1] >= 2:
+				temp_index = element_index
+			else:
+				break
+		# print(index, new_position[index][0], new_position[index][1], temp_index)
+		# print(new_position)
+		if temp_index == -1:
+			break
+		new_position[index][1] = temp_index
+		ans = new_position[index][1] - new_position[index][0] + 1
+		
+		if ans <= 0:
+			break
+		answer += ans * recursion(index + 1, case_index)
+		if new_position[index][1] == len(positions[index]) - 1:
+			break
+		new_position[index][0] = new_position[index][1] + 1
+	
+	new_position[index + 1][0] = 0
+	new_position[index + 1][1] = len(positions[index + 1]) - 1
+	if index != 0 and new_position[index - 1][1] < len(positions[index - 1]) - 1:
+		for element_index in range(new_position[index][0] + 1, len(positions[index])):
+			if positions[index][element_index][0] - positions[index - 1][new_position[index - 1][1] + 1][1] >= 2:
+				new_position[index][0] = element_index
+				break
+	# print(new_position)
+	# print(index, 'end')
+	# print(index, answer)
 	return answer
 
 
@@ -353,7 +384,6 @@ def loop_order(case_index):
 		for index in range(len(sharp_position)):
 			length = sharp_position[index][1] - sharp_position[index][0] + 1
 			
-			group_index_end = -1
 			if index == len(sharp_position) - 1:
 				group_index_end = len(group_position)
 			else:
@@ -361,19 +391,22 @@ def loop_order(case_index):
 			for group_index in range(positions[index][-1][2], group_index_end):
 				if group_index != positions[index][-1][2] and group_position[positions[index][-1][2]][2] is False:
 					break
-				if group_index > positions[index][-1][2]:
+				if group_index > positions[index][-1][2] and positions[index][-1][0] - group_position[group_index][0] + length - 1 >= 2:
 					positions[index].append([group_position[group_index][0], group_position[group_index][0] + length - 1, group_index])
 				
-				start = max(positions[index][-1][1] + 1, group_position[group_index][0] + length)
+				start = max(positions[index][-1][1] + 1, group_position[group_index][0] + length - 1)
 				if index == len(positions) - 1:
 					end = group_position[group_index][1] + 1
 				else:
 					end = min(positions[index + 1][-1][0] - 1, group_position[group_index][1] + 1)
+				# print(start, end)
 				if start >= end:
-					break
+					continue
 				# print(index, start, end)
 				
 				for temp_index in range(start, end):
+					if index != len(sharp_position) - 1 and positions[index + 1][-1][0] - temp_index < 2:
+						break
 					if symbol_format_info[case_index][temp_index] != '.':
 						if symbol_format_info[case_index][temp_index - length] == '#':
 							break
@@ -381,27 +414,32 @@ def loop_order(case_index):
 						bool_value = True
 					else:
 						break
-
+	
 	for i in positions:
 		print(i)
 	
-	new_position = [-1 for i in sharp_position]
+	new_position = [[0, len(positions[i]) - 1] for i in range(len(sharp_position))]
+	
 	# return 0
-	return recursion(-1, 0, case_index)
+	return recursion(0, case_index)
 
 
 with (open("2023/input/input12.txt", "r") as input_file):
 	for line in input_file:
 		temp = line.strip().split(' ')
-		symbol_format_info.append([])
-		number_format_info.append([])
-		for copy in range(5):
-			for element in list(temp[0]):
-				symbol_format_info[-1].append(element)
-			if copy < 4:
-				symbol_format_info[-1].append('?')
-			for element in temp[1].split(','):
-				number_format_info[-1].append(int(element))
+		symbol_format_info.append(list(temp[0]))
+		number_format_info.append([int(element) for element in temp[1].split(',')])
+	# for line in input_file:
+	# 	temp = line.strip().split(' ')
+	# 	symbol_format_info.append([])
+	# 	number_format_info.append([])
+	# 	for copy in range(5):
+	# 		for element in list(temp[0]):
+	# 			symbol_format_info[-1].append(element)
+	# 		if copy < 4:
+	# 			symbol_format_info[-1].append('?')
+	# 		for element in temp[1].split(','):
+	# 			number_format_info[-1].append(int(element))
 	
 	for case in range(len(symbol_format_info)):
 		decide = False
@@ -421,7 +459,7 @@ with (open("2023/input/input12.txt", "r") as input_file):
 	for case in range(len(symbol_format_info)):
 		a = total
 		total += loop_order(case)
-		print(case)
+		# print(case)
 		print(total - a)
 		# print()
 		# print()

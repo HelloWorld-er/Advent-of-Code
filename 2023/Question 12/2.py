@@ -1,121 +1,64 @@
-total = 0
-symbol_format_info = []
-number_format_info = []
-present_list = []
-pointers = []
+from enum import Enum
 
 
-def recursion(index, number_index, uncertain_pointers_num, symbol_list, number_list, layer, case_index):
-	global pointers
-	if index >= len(pointers[case_index]):
-		if uncertain_pointers_num == 0 and number_index == len(number_list):
-			# print("reach--------------------------------------------")
-			print(symbol_format_info[case_index])
-			print(number_index)
-			return 1
-		return 0
+class StringDataState(Enum):
+	OPERATIONAL = '.'
+	DAMAGED = '#'
+	UNKNOWN = '?'
+
+
+"""Dynamic Programming !!!"""
+record = {}
+
+
+def is_valid_condition(str_list, num_list):
+	return (
+			num_list[0] <= len(str_list) and StringDataState.OPERATIONAL.value not in str_list[:num_list[0]] and
+			(num_list[0] == len(str_list) or str_list[num_list[0]] != StringDataState.DAMAGED.value)
+	)
+
+
+def get_arrangements(str_list, num_list):
+	global record
 	
-	answer = 0
-	num_of_sharp = 0
-	for symbol in symbol_list[pointers[case_index][index][0]: pointers[case_index][index][1] + 1]:
-		if symbol == '#':
-			num_of_sharp += 1
-	if num_of_sharp == 0:
-		# skip
-		# print("skip-zero")
-		# pointers[case_index][layer + 1] = [[element for element in item] for item in pointers[case_index][layer]]
-		answer += recursion(index + 1, number_index, uncertain_pointers_num + 1, symbol_list, number_list, layer + 1,
-		                    case_index)
-	# print(pointers[index][1] - pointers[index][0] + 1, number_list[number_index]
-	if number_index >= len(number_list):
-		return answer
-	if pointers[case_index][index][1] - pointers[case_index][index][0] + 1 == number_list[number_index]:
-		# print("skip-full")
-		# pointers[case_index][layer + 1] = [[element for element in item] for item in pointers[case_index][layer]]
-		answer += recursion(index + 1, number_index + 1, uncertain_pointers_num, symbol_list, number_list, layer + 1,
-		                    case_index)
-	
-	num = number_list[number_index]
-	# split
-	if pointers[case_index][index][0] > pointers[case_index][index][1] - num:
-		return answer
-	# print(pointers[case_index][layer][index][0], pointers[case_index][layer][index][1], num)
-	for start in range(pointers[case_index][index][0], pointers[case_index][index][1] + 1):
-		# print("split")
-		if start + num - 1 > pointers[case_index][index][1]:
-			# print("break2")
-			break
-		if start > 0 and start > pointers[case_index][index][0] and symbol_list[start - 1] == '#':
-			# print("break2")
-			break
-		if start + num - 1 != pointers[case_index][index][1] and start + num < len(symbol_list) and symbol_list[
-			start + num] == '#':
-			# print("continue")
-			continue
-		# print("start", start)
-		# pointers[case_index][layer + 1] = [[element for element in item] for item in pointers[case_index][layer]]
-		if start + num - 1 >= pointers[case_index][index][1] - 1:
-			answer += recursion(index + 1, number_index + 1, uncertain_pointers_num, symbol_list, number_list,
-			                    layer + 1, case_index)
+	if not num_list:
+		if StringDataState.DAMAGED.value in str_list:
+			return 0
 		else:
-			original_start = pointers[case_index][index][0]
-			original_end = pointers[case_index][index][1]
-			pointers[case_index][index][0] = start
-			
-			pointers[case_index].insert(index + 1, [element for element in pointers[case_index][index]])
-			pointers[case_index][index][1] = start + num - 1
-			pointers[case_index][index + 1][0] = start + num + 1
-			
-			answer += recursion(index + 1, number_index + 1, uncertain_pointers_num - 1, symbol_list, number_list,
-			                    layer + 1, case_index)
-			
-			pointers[case_index][index][0] = original_start
-			pointers[case_index][index][1] = original_end
-			del pointers[case_index][index + 1]
+			return 1
+	if not str_list:
+		if not num_list:
+			return 1
+		else:
+			return 0
 	
-	return answer
-
-
-def loop_order(symbol_list, number_list, case_index):
-	global pointers
-	uncertain_pointers_num = len(number_list) - len(pointers[case_index])
-	return recursion(0, 0, uncertain_pointers_num, symbol_list, number_list, 0, case_index)
-
-
-with open("../input/input12.txt", "r") as input_file:
-	for line in input_file:
-		temp = line.strip().split(' ')
-		symbol_format_info.append([])
-		number_format_info.append([])
-		for copy in range(5):
-			for element in list(temp[0]):
-				symbol_format_info[-1].append(element)
-			if copy < 4:
-				symbol_format_info[-1].append('?')
-			for element in temp[1].split(','):
-				number_format_info[-1].append(int(element))
+	total = 0
+	if str_list[0] in [StringDataState.UNKNOWN.value, StringDataState.OPERATIONAL.value]:
+		if (str_list[1:], num_list) not in record:
+			record[(str_list[1:], num_list)] = get_arrangements(str_list[1:], num_list)
+		total += record[(str_list[1:], num_list)]
+	if str_list[0] in [StringDataState.UNKNOWN.value, StringDataState.DAMAGED.value]:
+		if is_valid_condition(str_list, num_list):
+			if (str_list[num_list[0] + 1:], num_list[1:]) not in record:
+				record[(str_list[num_list[0] + 1:], num_list[1:])] = get_arrangements(
+					str_list[num_list[0] + 1:], num_list[1:])
+			total += record[(str_list[num_list[0] + 1:], num_list[1:])]
 	
-	for case in range(len(symbol_format_info)):
-		decide = False
-		pointers.append([])
-		element_index = 0
-		while element_index < len(symbol_format_info[case]):
-			element = symbol_format_info[case][element_index]
-			if element == '?' or element == '#':
-				if decide is False:
-					pointers[-1].append([element_index])
-					decide = True
-				element_index += 1
-			else:
-				if decide is True:
-					pointers[-1][-1].append(element_index - 1)
-					decide = False
-				del symbol_format_info[case][element_index]
-		if decide:
-			pointers[-1][-1].append(len(symbol_format_info[case]) - 1)
-	for case in range(len(symbol_format_info)):
-		a = total
-		total += loop_order(symbol_format_info[case], number_format_info[case], case)
-		print(total - a)
+	return total
+
+
+with open("input.txt", "r") as input_file:
+	whole_data = [_.strip() for _ in input_file.readlines()]
+
+total = 0
+for strip_data in whole_data:
+	# print(strip_data)
+	str_list, num_list = strip_data.split(' ')
+	str_list = '?'.join([str_list] * 5)
+	num_list = tuple(map(int, num_list.split(',')))
+	num_list = num_list * 5
+	record = {}
+	total += get_arrangements(str_list, num_list)
+# print(str_list, num_list)
 
 print(total)

@@ -124,7 +124,7 @@ with open("../input/input13.txt") as input_file:
 			info = []
 		else:
 			info.append(list(line.strip()))
-	if info != []:
+	if info:
 		total += find_reflection(info)
 
 print(total)
